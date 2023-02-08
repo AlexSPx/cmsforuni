@@ -1,0 +1,1 @@
+Testing golang and vite(with ssr?)
