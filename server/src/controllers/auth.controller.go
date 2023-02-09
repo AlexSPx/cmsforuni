@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"fmt"
 	"net/http"
 	"strings"
 	"time"
@@ -14,10 +15,11 @@ import (
 )
 
 type AuthController struct {
-	DB *gorm.DB
+	DB     *gorm.DB
+	config *initializers.Config
 }
 
-func NewAuthController(DB *gorm.DB) AuthController {
+func NewAuthController(DB *gorm.DB, config *initializers.Config) AuthController {
 	return AuthController{}
 }
 
@@ -94,23 +96,63 @@ func (ac *AuthController) SignInUser(ctx *gin.Context) {
 		return
 	}
 
-	config, _ := initializers.LoadConfig(".") // TO-DO: Pass it as a parameter
-
-	access_token, err := utils.CreateToken(config.AccessTokenExpiresIn, potentialUser.ID, config.AccessTokenPrivateKey)
+	access_token, err := utils.CreateToken(ac.config.AccessTokenExpiresIn, potentialUser.ID, ac.config.AccessTokenPrivateKey)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"status": "fail", "message": err.Error()})
 		return
 	}
 
-	refresh_token, err := utils.CreateToken(config.RefreshTokenExpiresIn, potentialUser.ID, config.RefreshTokenPrivateKey)
+	refresh_token, err := utils.CreateToken(ac.config.RefreshTokenExpiresIn, potentialUser.ID, ac.config.RefreshTokenPrivateKey)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"status": "fail", "message": err.Error()})
 		return
 	}
 
-	ctx.SetCookie("access_token", access_token, config.AccessTokenMaxAge*60, "/", "localhost", false, true) // secure for prod??
-	ctx.SetCookie("refresh_token", refresh_token, config.RefreshTokenMaxAge*60, "/", "localhost", false, true)
-	ctx.SetCookie("logged_in", "true", config.AccessTokenMaxAge*60, "/", "localhost", false, false)
+	ctx.SetCookie("access_token", access_token, ac.config.AccessTokenMaxAge*60, "/", "localhost", false, true) // secure for prod??
+	ctx.SetCookie("refresh_token", refresh_token, ac.config.RefreshTokenMaxAge*60, "/", "localhost", false, true)
+	ctx.SetCookie("logged_in", "true", ac.config.AccessTokenMaxAge*60, "/", "localhost", false, false)
 
 	ctx.JSON(http.StatusOK, gin.H{"status": "success", "access_token": access_token})
+}
+
+func (ac *AuthController) RefreshAccessToken(ctx *gin.Context) {
+	cookie, err := ctx.Cookie("refresh_token")
+
+	if err != nil {
+		ctx.AbortWithStatusJSON(http.StatusForbidden, gin.H{"status": "fail", "message": err.Error()})
+		return
+	}
+
+	sub, err := utils.VerifyToken(cookie, ac.config.RefreshTokenPublicKey)
+
+	if err != nil {
+		ctx.AbortWithStatusJSON(http.StatusForbidden, gin.H{"status": "fail", "message": err.Error()})
+		return
+	}
+
+	var user models.User
+	res := ac.DB.First(&user, "id = ?", fmt.Sprint(sub))
+	if res.Error != nil {
+		ctx.AbortWithStatusJSON(http.StatusForbidden, gin.H{"status": "fail", "message": "user not found"})
+		return
+	}
+
+	access_token, err := utils.CreateToken(ac.config.AccessTokenExpiresIn, user.ID, ac.config.AccessTokenPrivateKey)
+	if err != nil {
+		ctx.AbortWithStatusJSON(http.StatusForbidden, gin.H{"status": "fail", "message": err.Error()})
+		return
+	}
+
+	ctx.SetCookie("access_token", access_token, ac.config.AccessTokenMaxAge*60, "/", "localhost", false, true)
+	ctx.SetCookie("logged_in", "true", ac.config.AccessTokenMaxAge*60, "/", "localhost", false, false)
+
+	ctx.JSON(http.StatusOK, gin.H{"status": "success", "access_token": access_token})
+}
+
+func (ac *AuthController) Logout(ctx *gin.Context) {
+	ctx.SetCookie("access_token", "", -1, "/", "localhost", false, true)
+	ctx.SetCookie("refresh_token", "", -1, "/", "localhost", false, true)
+	ctx.SetCookie("logged_in", "", -1, "/", "localhost", false, false)
+
+	ctx.JSON(http.StatusOK, gin.H{"status": "success"})
 }
