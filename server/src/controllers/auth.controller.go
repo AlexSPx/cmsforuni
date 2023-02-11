@@ -20,7 +20,7 @@ type AuthController struct {
 }
 
 func NewAuthController(DB *gorm.DB, config *initializers.Config) AuthController {
-	return AuthController{}
+	return AuthController{DB, config}
 }
 
 func (ac *AuthController) SignUpUser(ctx *gin.Context) {
@@ -52,7 +52,6 @@ func (ac *AuthController) SignUpUser(ctx *gin.Context) {
 		CreatedAt: now,
 		UpdatedAt: now,
 	}
-
 	res := ac.DB.Create(&newUser)
 
 	if res.Error != nil && strings.Contains(res.Error.Error(), "duplicate key value violates unique") {

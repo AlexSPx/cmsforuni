@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"log"
 	"net/http"
 
 	"github.com/alexspx/gocms/src/models"
@@ -30,4 +31,10 @@ func (uc *UserController) GetMe(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, gin.H{"status": "success", "data": gin.H{"user": userResponse}})
+}
+
+func (uc *UserController) ChangeImage(ctx *gin.Context) {
+	file, _ := ctx.FormFile("avatar")
+
+	log.Println(file.Filename)
 }

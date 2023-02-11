@@ -15,7 +15,7 @@ func NewRouteUserController(userController controllers.UserController) UserRoute
 }
 
 func (uc *UserRouteController) UserRoute(group *gin.RouterGroup) {
-
-	router := group.Group("users")
+	router := group.Group("user")
 	router.GET("/me", middlewares.GetUser(), uc.userController.GetMe)
+	router.POST("/avatar", uc.userController.ChangeImage)
 }

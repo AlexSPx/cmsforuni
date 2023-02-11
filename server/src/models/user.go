@@ -23,7 +23,7 @@ type User struct {
 
 type UserSignUpInput struct {
 	Name            string `json:"name" binding:"required"`
-	Username        string `json:"username" binding:"required, min=6"`
+	Username        string `json:"username" binding:"required,min=6"`
 	Email           string `json:"email" binding:"required"`
 	Password        string `json:"password" binding:"required,min=8"`
 	PasswordConfirm string `json:"passwordConfirm" binding:"required"`

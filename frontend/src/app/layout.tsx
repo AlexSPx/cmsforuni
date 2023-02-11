@@ -1,9 +1,9 @@
 /* eslint-disable @next/next/no-head-element */
-import { Inter } from '@next/font/google'
+import { Ubuntu } from '@next/font/google'
 import Navbar from './navbar';
 import './globals.css';
 
-const inter = Inter({ subsets: ['latin'] })
+const font = Ubuntu({weight: "400"})
 
 export default function RootLayout({
   children,
@@ -13,7 +13,7 @@ export default function RootLayout({
   return (
     <html>
       <head></head>
-      <body className={`${inter.className} flex flex-col w-screen h-screen`}>
+      <body className={`flex flex-col w-screen h-screen`}>
         <Navbar />
         {children}
       </body>

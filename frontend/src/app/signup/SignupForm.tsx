@@ -11,11 +11,34 @@ export default function SignupForm() {
     const [password, setPassword] = useState("")
     const [confirmPassword, setConfirmPassword] = useState("")
 
+    async function signUp() {
+        const user = {
+            username,
+            email,
+            password,
+            passwordConfirm: confirmPassword,
+            name
+        }
+
+        const res = await fetch("http://localhost:8080/api/auth/register", {
+            method: "POST",
+            mode: "cors",
+            credentials: 'include',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(user)
+        })
+
+        console.log(res);
+        
+    }
+
 
   return (
     <section className="bg-white dark:bg-gray-900">
     <div className="container flex items-center justify-center px-6 mx-auto">
-        <form className="w-full max-w-md">    
+        <div className="w-full max-w-md">    
             <div className="flex items-center justify-center mt-6">
                 <a href="#" className="w-1/3 pb-4  text-center text-gray-800 capitalize border-b-2 border-blue-500 dark:border-blue-400 dark:text-white">
                     sign up
@@ -30,16 +53,18 @@ export default function SignupForm() {
             </label>
 
             <InputField label="Email" type="email" value={email} setValue={setEmail} />
-            <InputField label="Name" type="text" value={name} setValue={setEmail} />
+            <InputField label="Name" type="text" value={name} setValue={setName} />
             <InputField label="Password" type="password" value={password} setValue={setPassword} />
             <InputField label="Confirm Password" type="password" value={confirmPassword} setValue={setConfirmPassword} />
 
             <div className="mt-6">
-                <button className="w-full px-6 py-3 text-sm tracking-wide text-white capitalize transition-colors duration-300 transform bg-blue-500 rounded-lg hover:bg-blue-400 focus:outline-none focus:ring focus:ring-blue-300 focus:ring-opacity-50">
+                <button className="w-full px-6 py-3 text-sm tracking-wide text-white capitalize transition-colors duration-300 transform bg-blue-500 rounded-lg hover:bg-blue-400 focus:outline-none focus:ring focus:ring-blue-300 focus:ring-opacity-50"
+                onClick={signUp}
+                >
                     Sign Up
                 </button>
             </div>
-        </form>
+        </div>
     </div>
 </section>
   )
