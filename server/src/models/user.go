@@ -30,7 +30,7 @@ type UserSignUpInput struct {
 }
 
 type SignInInput struct {
-	Username string `json:"email"  binding:"required"`
+	Username string `json:"username"  binding:"required"`
 	Password string `json:"password"  binding:"required"`
 }
 
